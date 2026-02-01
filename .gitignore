@@ -18,3 +18,6 @@ Thumbs.db
 # Ignore all markdown files except README
 *.md
 !README.md
+
+# sample text files
+*.txt
