@@ -3,6 +3,10 @@
 #include <string.h>
 #include <ctype.h>
 
+#define COLOR_RED     "\033[0;31m"
+#define COLOR_GREEN   "\033[0;32m"
+#define COLOR_RESET   "\033[0m"
+
 char* input_file;
 int current_position = 0;
 int current_line = 1;
@@ -43,10 +47,10 @@ typedef struct {
 } Token;
 
 void readFile() {
-    FILE* file = fopen("inputfile.txt", "r");
+    FILE* file = fopen("inputfile.txt", "rb"); // read only binary
 
     if (file == NULL) {
-        printf("ERROR: COULD NOT OPEN THE FILE\n");
+        printf(COLOR_RED "ERROR: COULD NOT OPEN THE FILE\n" COLOR_RESET);
         exit(1);
     }
 
@@ -70,6 +74,16 @@ char peek() {
     return input_file[current_position];
 }
 
+char peekNext() {
+    if (input_file[current_position] == '\0') {
+        return  '\0';
+    }
+
+    int next_position = current_position + 1;
+
+    return input_file[next_position];
+}
+
 char getAdvance() { // get the current character and move forward
     char current = input_file[current_position];
     current_position++;
@@ -89,7 +103,7 @@ Token read_identifier() {
 
     int i = 0;
 
-    while (isalnum(peek())) { //read a word(letter or digit)
+    while (isalnum(peek()) || peek() == '_') { //read a identifiers
         token.lexeme[i++] = getAdvance();
     }
 
@@ -111,12 +125,23 @@ Token read_identifier() {
 
 Token read_number() {
     Token token;
-    token.type = TOKEN_NUMBER;
     token.line = current_line;
+    int is_valid_token = 1;
 
     int i = 0;
-    while (isdigit(peek())) { // improve to drop 212av
+    while (isalnum(peek()) || peek() == '_') { //read a identifiers
+        if (!isdigit(peek())) {
+            is_valid_token = 0;
+        }
         token.lexeme[i++] = getAdvance();
+    }
+
+    if(is_valid_token) {
+        token.type = TOKEN_NUMBER;
+    }
+    else {
+        token.type = TOKEN_ERROR;
+        printf(COLOR_RED"\nNames must begin with a letter or an underscore \t" COLOR_RESET);
     }
 
     token.lexeme[i] = '\0';
@@ -124,6 +149,46 @@ Token read_number() {
     return token;
 }
 
+
+
+Token read_single_character() {
+    char c = peek();
+    Token token;
+
+    token.line = current_line;
+    token.lexeme[0] = getAdvance();
+    token.lexeme[1] = '\0';
+
+    switch (c) {
+        case '+': token.type = TOKEN_PLUS; return token;        
+        case '-': token.type = TOKEN_MINUS; return token; 
+        case '*': token.type = TOKEN_MULTIPLY; return token;
+        case '/': token.type = TOKEN_DIVIDE; return token;
+        case ';': token.type = TOKEN_SEMICOLON; return token;
+        case '(': token.type = TOKEN_LPAR; return token;
+        case ')': token.type = TOKEN_RPAR; return token;
+        case '=': token.type = TOKEN_ASSIGN; return token;
+ 
+        default:
+            if (!isspace(peekNext())) {
+                int i = 1;
+
+                while (!isspace(peek())) { 
+                    token.lexeme[i++] = getAdvance();
+                }
+                token.lexeme[i] = '\0';
+
+                token.type = TOKEN_ERROR;
+                printf(COLOR_RED"\nNames cannot contain whitespaces or special characters like !, #, %%, etc.\t" COLOR_RESET);
+                return token;
+            }
+            else {
+                token.type = TOKEN_ERROR;
+                printf(COLOR_RED"\ninvalid charcater\n" COLOR_RESET);
+            }
+            return token;
+    }
+}
 
 Token get_next_token() {
     skip_white_space();
@@ -136,35 +201,57 @@ Token get_next_token() {
         return token;
     }
 
-    if (isalpha(peek())) {
-
+    if (isalpha(peek()) || peek() == '_') { // indentifier or keyword (print | int | num1)
+        return read_identifier();
     }
 
-    if (isdigit(peek())) {
-    
+    if (isdigit(peek())) { // number
+        return read_number();
     }
 
-    switch (peek()) {
-        case '+':
-        
-        case '-':
+    else {
 
-        case '*':
-
-        case '/':
-
-        default:
-            printf("invalid token");
-    
-    }
+        return read_single_character();
+    }    
     
 }
-
-
 
 
 int main() {
     readFile();
+    
+    printf("=== TOKENIZER OUTPUT ===\n\n");
+    
+    Token token;
+    do {
+        token = get_next_token();
+        
+        // Print token information
+        printf("Line %d: ", token.line);
+        
+        switch(token.type) {
+            case TOKEN_INT:         printf("KEYWORD       'int'\n"); break;
+            case TOKEN_PRINT:       printf("KEYWORD       'print'\n"); break;
+            case TOKEN_IDENTIFIER:  printf("IDENTIFIER    '%s'\n", token.lexeme); break;
+            case TOKEN_NUMBER:      printf("NUMBER        '%s'\n", token.lexeme); break;
+            case TOKEN_ASSIGN:      printf("OPERATOR      '='\n"); break;
+            case TOKEN_PLUS:        printf("OPERATOR      '+'\n"); break;
+            case TOKEN_MINUS:       printf("OPERATOR      '-'\n"); break;
+            case TOKEN_MULTIPLY:    printf("OPERATOR      '*'\n"); break;
+            case TOKEN_DIVIDE:      printf("OPERATOR      '/'\n"); break;
+            case TOKEN_SEMICOLON:   printf("DELIMITER     ';'\n"); break;
+            case TOKEN_LPAR:        printf("DELIMITER     '('\n"); break;
+            case TOKEN_RPAR:        printf("DELIMITER     ')'\n"); break;
+            case TOKEN_FILE_END:    printf("END OF FILE\n"); break;
+            case TOKEN_ERROR:       printf("ERROR         %s\n\n", token.lexeme); break;
+            default:                printf("UNKNOWN TOKEN\n"); break;
+        }
+        
+    } while (token.type != TOKEN_FILE_END);
+    
+    printf("\n=== TOKENIZATION COMPLETE ===\n");
+    
+    free(input_file);
+    return 0;
 }
-
 
