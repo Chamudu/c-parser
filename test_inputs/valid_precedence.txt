@@ -1,0 +1,4 @@
+int a = 2 + 3 * 4;
+print(a);
+int b = 10 - 2 / 2;
+print(b);

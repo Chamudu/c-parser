@@ -1,0 +1,20 @@
+# Compiled executables
+*.exe
+*.out
+parser
+
+# Object files
+*.o
+*.obj
+
+# Editor settings (personal)
+.vscode/
+compile_flags.txt
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Ignore all markdown files except README
+*.md
+!README.md
