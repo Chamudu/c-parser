@@ -407,12 +407,54 @@ ASTNode* parse_statement() {
     }
 }
 
+void print_indent(int level) {
+    for (int i = 0; i < level; i++) printf("|  "); // 2 spaces per level
+}
+
+void print_ast(ASTNode* node, int level) {
+    if (node == NULL) return;
+
+    print_indent(level);
+
+    switch (node->type) {
+        case NODE_NUMBER:
+            printf("NUMBER %d\n", node->data.number_val);
+            break;
+            
+        case NODE_IDENTIFIER:
+            printf("VAR %s\n", node->data.var_name);
+            break;
+
+        case NODE_BINARY_OP:
+            printf("BINARY OP (%c)\n", node->data.binary_op.op);
+            print_ast(node->data.binary_op.left, level + 1);
+            print_ast(node->data.binary_op.right, level + 1);
+            break;
+
+        case NODE_DECLARATION:
+            printf("DECL (int %s)\n", node->data.declaration.var_name);
+            print_ast(node->data.declaration.expr, level + 1);
+            break;
+
+        case NODE_ASSIGNMENT:
+            printf("ASSIGN (%s)\n", node->data.assignment.var_name);
+            print_ast(node->data.assignment.expr, level + 1);
+            break;
+            
+        case NODE_PRINT:
+            printf("PRINT\n");
+            print_ast(node->data.print_expr, level + 1);
+            break;
+    }
+}
+
 void parse_program() {
     while (current_token.type != TOKEN_FILE_END) {
         ASTNode* stmt = parse_statement();
-        printf("Parsed a statement!\n"); 
+        print_ast(stmt, 0);
     }
 }
+
 
 
 /*
