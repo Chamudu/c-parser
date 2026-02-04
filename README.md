@@ -69,8 +69,9 @@ graph TD
     ```
 4.  **Run logic:**
     ```bash
-    ./parser
+    ./parser inputfile.txt
     ```
+    *Note: You can pass any filename as an argument.*
 
 ---
 

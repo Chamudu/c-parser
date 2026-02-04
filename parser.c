@@ -146,11 +146,11 @@ const char* get_token_name(TokenType type) {
 }
 
 
-void readFile() {
-    FILE* file = fopen("inputfile.txt", "rb"); // read only binary
+void readFile(const char* filename) {
+    FILE* file = fopen(filename, "rb"); // read only binary
 
     if (file == NULL) {
-        printf(COLOR_RED "ERROR: COULD NOT OPEN THE FILE\n" COLOR_RESET);
+        printf(COLOR_RED "ERROR: COULD NOT OPEN THE FILE : %s\n" COLOR_RESET, filename);
         exit(1);
     }
 
@@ -266,12 +266,12 @@ Token read_single_character() {
         case '(': token.type = TOKEN_LPAR; return token;
         case ')': token.type = TOKEN_RPAR; return token;
         case '=': token.type = TOKEN_ASSIGN; return token;
- 
+        
         default:
             if (!isspace(peekNext())) {
                 int i = 1;
 
-                while (!isspace(peek())) { 
+                while (peek() != '\0' && !isspace(peek()) && i < 255) { 
                     token.lexeme[i++] = getAdvance();
                 }
                 token.lexeme[i] = '\0';
@@ -574,7 +574,6 @@ void parse_program() {
 }
 
 
-
 /*
 
 # 1. The Program 
@@ -639,8 +638,14 @@ int main() {
 }
 */
 
-int main() {
-    readFile();
+int main(int argc, char* argv[]) {
+    if (argc < 2) {
+        printf(COLOR_RED "Usage: %s <source_file>\n" COLOR_RESET, argv[0]);
+        return 1;
+    }
+
+    readFile(argv[1]);
+    
     current_token = get_next_token(); 
     parse_program();
     printf(COLOR_GREEN "Parsing Completed Successfully!\n" COLOR_RESET);
