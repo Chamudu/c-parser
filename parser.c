@@ -8,7 +8,6 @@
 #define COLOR_RESET   "\033[0m"
 
 typedef enum {
-
     // int print
     TOKEN_INT,
     TOKEN_PRINT,
@@ -31,7 +30,6 @@ typedef enum {
 
     TOKEN_FILE_END,
     TOKEN_ERROR
-
 } TokenType ;
 
 typedef struct {
@@ -78,10 +76,74 @@ typedef struct ASTNode{
 
 } ASTNode;
 
+// symbol table
+typedef struct {
+    char name[256];
+    int value;
+    int is_declared;
+} Variable;
+
+Variable symbol_table[100];
+
+int symbol_count = 0;
 char* input_file;
 int current_position = 0;
 int current_line = 1;
 Token current_token;
+
+int find_variable(char* name) {
+    for (int i = 0; i < symbol_count; i++) {
+        if (strcmp(symbol_table[i].name, name) == 0) {
+            return i;
+        }
+    }
+    return -1;
+}
+
+void declare_variable(char* name){
+    if (find_variable(name) >= 0) {
+        printf(COLOR_RED "Semantic Error: Variable '%s' already declared"COLOR_RESET, name);
+        exit(1);
+    }
+    else if (find_variable(name) == -1) {
+        strcpy(symbol_table[symbol_count].name, name);
+        symbol_table[symbol_count].is_declared = 1;
+        symbol_count++;
+    }
+}
+
+void verify_variable(char* name) {
+    if (find_variable(name) == -1) {
+        printf(COLOR_RED "Semantic Error: Variable '%s' used but not declared"COLOR_RESET, name);
+        exit(1);
+    }
+}
+
+int set_variable(char* name, int value) {
+    int location = find_variable(name);
+    verify_variable(name);
+    symbol_table[location].value = value; 
+    return location;
+}
+
+const char* get_token_name(TokenType type) {
+    switch (type) {
+        case TOKEN_INT: return "int";
+        case TOKEN_PRINT: return "print";
+        case TOKEN_IDENTIFIER: return "identifier";
+        case TOKEN_NUMBER: return "number";
+        case TOKEN_ASSIGN: return "=";
+        case TOKEN_PLUS: return "+";
+        case TOKEN_MINUS: return "-";
+        case TOKEN_MULTIPLY: return "*";
+        case TOKEN_DIVIDE: return "/";
+        case TOKEN_SEMICOLON: return ";";
+        case TOKEN_LPAR: return "(";
+        case TOKEN_RPAR: return ")";
+        case TOKEN_FILE_END: return "End of File";
+        default: return "Unknown";
+    }
+}
 
 
 void readFile() {
@@ -215,7 +277,7 @@ Token read_single_character() {
                 token.lexeme[i] = '\0';
 
                 token.type = TOKEN_ERROR;
-                printf(COLOR_RED"\nNames cannot contain whitespaces or special characters like !, #, %%, etc.\t" COLOR_RESET);
+                printf(COLOR_RED"\nUnrecognized character %c\n" COLOR_RESET, c);
                 return token;
             }
             else {
@@ -256,8 +318,8 @@ void eat_Token(TokenType expected_type) {
         current_token = get_next_token();
     } 
     else {
-        printf(COLOR_RED "Syntax Error: Expected token type %d but found '%s' on line %d\n" COLOR_RESET, 
-            expected_type, current_token.lexeme, current_token.line);
+        printf(COLOR_RED "Syntax Error: Expected '%s' but found '%s' on line %d\n" COLOR_RESET, 
+            get_token_name(expected_type), current_token.lexeme, current_token.line);
         exit(1);
     }
 }
@@ -265,7 +327,7 @@ void eat_Token(TokenType expected_type) {
 ASTNode* create_ast_node(ASTNodeType type) {
     ASTNode* node = (ASTNode*)malloc(sizeof(ASTNode));
     if (node == NULL) {
-        printf(COLOR_RED "Error: Memory allocation failed (at ASTNode)" COLOR_RESET);
+        printf(COLOR_RED "Error: Memory allocation failed (at ASTNode)\n" COLOR_RESET);
         exit(1);
     }
 
@@ -286,6 +348,8 @@ ASTNode* parse_factor() {
         return node;
     }
     else if (token.type == TOKEN_IDENTIFIER) {
+        verify_variable(token.lexeme);
+
         ASTNode* node = create_ast_node(NODE_IDENTIFIER);
         strcpy(node->data.var_name, token.lexeme);
         eat_Token(TOKEN_IDENTIFIER);
@@ -298,8 +362,8 @@ ASTNode* parse_factor() {
         return node;
     }
     else {
-        printf(COLOR_RED "Syntax Error: Unexpected token '%s' in factor\n" COLOR_RESET, 
-            token.lexeme);
+        printf(COLOR_RED "Syntax Error: Unexpected token '%s' in line %d\n" COLOR_RESET, 
+            token.lexeme, token.line);
         exit(1);
     }
 }
@@ -360,6 +424,7 @@ ASTNode* parse_print() {
 }
 
 ASTNode* parse_assignment() {
+    verify_variable(current_token.lexeme);
 
     ASTNode* node = create_ast_node(NODE_ASSIGNMENT);
     strcpy(node->data.assignment.var_name, current_token.lexeme);
@@ -376,6 +441,8 @@ ASTNode* parse_declaration() {
     
     ASTNode* node = create_ast_node(NODE_DECLARATION);
     eat_Token(TOKEN_INT);
+
+    declare_variable(current_token.lexeme);
 
     strcpy(node->data.declaration.var_name, current_token.lexeme);
     eat_Token(TOKEN_IDENTIFIER);
@@ -405,6 +472,55 @@ ASTNode* parse_statement() {
             token.lexeme, token.line);
         exit(1);
     }
+}
+
+int evaluate_tree(ASTNode* node) {
+    if (node == NULL) return 0;
+
+    switch (node->type) {
+        case NODE_NUMBER:
+            return node->data.number_val;
+        
+        case NODE_IDENTIFIER:
+            int index = find_variable(node->data.var_name);
+            return symbol_table[index].value;
+        
+        case NODE_BINARY_OP:
+            int value_left = evaluate_tree(node->data.binary_op.left);
+            int value_right = evaluate_tree(node->data.binary_op.right);
+            char op = node->data.binary_op.op;
+
+            if (op == '+') return value_left + value_right;
+            if (op == '-') return value_left - value_right;
+            if (op == '*') return value_left * value_right;
+            if (op == '/') {
+                if ( value_right == 0) {
+                    printf(COLOR_RED "Error: division by 0 on line %d\n" COLOR_RESET, current_line);
+                    exit(1);
+                }
+                else {
+                    return value_left / value_right;
+                }
+            }
+            printf("Evaluate binaryOP error\n");
+        
+        case NODE_ASSIGNMENT:
+            int value_assign_right = evaluate_tree(node->data.assignment.expr);
+            set_variable(node->data.assignment.var_name, value_assign_right);
+            return value_assign_right;
+            
+        case NODE_DECLARATION:
+            int value_decl_right = evaluate_tree(node->data.declaration.expr);
+            set_variable(node->data.declaration.var_name, value_decl_right);
+            return value_decl_right;
+            
+        case NODE_PRINT:
+            int print = evaluate_tree(node->data.print_expr);
+            printf("%d\n", print);
+            return 0;
+    }
+
+    return 0;
 }
 
 void print_indent(int level) {
@@ -451,7 +567,9 @@ void print_ast(ASTNode* node, int level) {
 void parse_program() {
     while (current_token.type != TOKEN_FILE_END) {
         ASTNode* stmt = parse_statement();
-        print_ast(stmt, 0);
+        // print_ast(stmt, 0);
+
+        evaluate_tree(stmt);
     }
 }
 

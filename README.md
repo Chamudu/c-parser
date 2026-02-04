@@ -1,226 +1,88 @@
-# C Parser & Interpreter Project
+# C Parser & Interpreter 🚀
 
-> **📚 Educational Project**: This is a learning project for understanding compiler construction principles, built as part of my Computational Models coursework. The project demonstrates practical implementation of formal language theory, lexical analysis, parsing, and interpretation.
-
-## 📖 Overview
-A complete parser and interpreter for a simple programming language, implementing core compiler concepts from scratch in C.
-
-### Supported Language Features:
-- Variable declarations: `int x = 20;`
-- Arithmetic expressions: `int z = x + y;`
-- Print statements: `print(z);`
-- Operators: `+`, `-`, `*`, `/`
-
-## 🎯 Learning Objectives
-
-This project teaches:
-- **Formal Language Theory** - Context-Free Grammars
-- **Lexical Analysis** - Tokenization and pattern matching
-- **Syntax Analysis** - Recursive descent parsing
-- **Semantic Analysis** - Symbol tables and type checking
-- **Interpretation** - AST evaluation and execution
-
-## 📂 Project Structure
-
-```
-c-parser/
-├── parser.c                    # Main implementation (to be built)
-├── test_inputs/               # Test files
-│   ├── valid1.txt
-│   ├── valid2.txt
-│   └── error1.txt
-├── docs/
-│   ├── LEARNING_PLAN.md       # Overall project phases
-│   ├── PHASE1_CFG_THEORY.md   # Grammar theory & design
-│   ├── IMPLEMENTATION_ROADMAP.md  # Technical architecture
-│   └── NOTION_STUDY_GUIDE.md  # Comprehensive study notes
-└── README.md                   # This file
-```
-
-## 🚀 Quick Start
-
-### Compilation
-You'll compile with:
-```bash
-gcc parser.c -o parser
-```
-
-### Usage
-```bash
-./parser inputfile.txt
-```
-
-### Example Input (`inputfile.txt`):
-```c
-int y = 5;
-int x = 20;
-int z = x + y;
-print(z);
-```
-
-### Expected Output:
-```
-25
-```
-
-## 📚 Documentation
-
-### For Learning:
-1. **Start here:** [`LEARNING_PLAN.md`](LEARNING_PLAN.md)
-   - Overview of all phases
-   - Timeline and milestones
-   
-2. **Theory deep-dive:** [`PHASE1_CFG_THEORY.md`](PHASE1_CFG_THEORY.md)
-   - Context-Free Grammar design
-   - Left recursion and operator precedence
-   - Manual parsing examples
-   
-3. **Implementation guide:** [`IMPLEMENTATION_ROADMAP.md`](IMPLEMENTATION_ROADMAP.md)
-   - Data structures
-   - Code architecture
-   - Testing strategy
-   
-4. **Study notes:** [`NOTION_STUDY_GUIDE.md`](NOTION_STUDY_GUIDE.md)
-   - Comprehensive theory notes
-   - Viva preparation
-   - Real-world applications
-
-## 📝 Grammar (CFG)
-
-Our language is defined by the following Context-Free Grammar:
-
-```ebnf
-<program>         → <statement>+
-
-<statement>       → <declaration> | <print-statement>
-
-<declaration>     → int IDENTIFIER = <expression> ;
-
-<print-statement> → print ( <expression> ) ;
-
-<expression>      → <term> ( (+ | -) <term> )*
-
-<term>            → <factor> ( (* | /) <factor> )*
-
-<factor>          → NUMBER | IDENTIFIER | ( <expression> )
-```
-
-**Terminals:**
-- Keywords: `int`, `print`
-- Operators: `=`, `+`, `-`, `*`, `/`
-- Delimiters: `;`, `(`, `)`
-- Literals: `NUMBER`, `IDENTIFIER`
-
-## 🏗️ Architecture
-
-```
-Source Code → Lexer → Parser → Semantic Analyzer → Executor → Output
-              (Tokens)  (AST)    (Validated AST)   (Evaluation)
-```
-
-### Components:
-
-1. **Lexer (Tokenizer)**
-   - Reads source character-by-character
-   - Produces token stream
-   - Recognizes keywords, operators, identifiers, numbers
-
-2. **Parser**
-   - Recursive descent implementation
-   - Builds Abstract Syntax Tree (AST)
-   - Validates syntax against CFG
-
-3. **Semantic Analyzer**
-   - Symbol table management
-   - Checks for undeclared/redeclared variables
-   - Type validation
-
-4. **Executor (Interpreter)**
-   - Evaluates AST
-   - Performs arithmetic operations
-   - Outputs results
-
-## 🧪 Testing
-
-### Test Categories:
-
-**Valid Programs:**
-- Basic arithmetic
-- Operator precedence
-- Parenthesized expressions
-- Multiple variables
-
-**Syntax Errors:**
-- Missing semicolons
-- Invalid token sequences
-- Unmatched parentheses
-
-**Semantic Errors:**
-- Undeclared variables
-- Redeclared variables
-- Type mismatches
-
-## 🎯 Key Learning Outcomes
-
-### Technical Skills Demonstrated:
-- Context-Free Grammar design and implementation
-- Handling left recursion and operator precedence
-- Symbol table management strategies
-- Comprehensive error handling (syntax & semantic)
-- Memory management in C
-- Modular code architecture
-
-### Implementation Highlights:
-- Clean, well-documented code structure
-- Recursive descent parsing algorithm
-- AST-based expression evaluation
-- Extensive test coverage
-
-## 📖 References
-
-### Books:
-- "Compilers: Principles, Techniques, and Tools" (Dragon Book)
-- "Crafting Interpreters" by Robert Nystrom
-
-### Online Resources:
-- Stanford CS143 Compiler Course
-- Computerphile YouTube Channel
-- LLVM Documentation
-
-## ✅ Project Milestones
-
-- [x] Define Context-Free Grammar
-- [x] Design token types and structures
-- [ ] Implement lexical analyzer (tokenizer)
-- [ ] Build recursive descent parser
-- [ ] Add syntax error detection
-- [ ] Implement semantic analysis (symbol table)
-- [ ] Add semantic error detection
-- [ ] Implement expression evaluation
-- [ ] Add interpreter functionality
-- [ ] Create comprehensive test suite
-- [ ] Document design decisions
-
-## 💡 Extension Ideas
-
-If time permits, consider adding:
-- More operators (`%`, `^`, `==`, `!=`)
-- Multiple data types (`float`, `char`)
-- Control flow (`if`, `while`)
-- Functions
-- Arrays
-
-## 🤝 Development Approach
-
-This project follows a **structured learning methodology**:
-- Theory-driven implementation (understand concepts before coding)
-- Incremental development with clear milestones
-- Test-driven approach for reliability
-- Comprehensive documentation alongside code
-- Focus on deep understanding, not just working code
-
-The implementation prioritizes clarity and educational value while maintaining professional coding standards.
+A custom-built Compiler Frontend and Interpreter for a subset of the C language.
+This project implements the full pipeline from raw source code to execution, including Lexical Analysis, Parsing (AST), Semantic Validation, and Runtime Interpretation.
 
 ---
 
-**Goal:** Build a solid foundation in compiler construction that demonstrates both theoretical knowledge and practical implementation skills - essential for any computer science professional. 🚀
+## ✨ Features
+
+### 1. Lexical Analysis (The Lexer)
+- Converts raw source code into a stream of **Tokens**.
+- Handles Keywords (`int`, `print`), Identifiers, Numbers, and Operators.
+- **Robust Error Handling:** Detects invalid characters and malformed identifiers.
+
+### 2. Syntax Analysis (The Parser)
+- Implements a **Recursive Descent Parser**.
+- builds a hierarchical **Abstract Syntax Tree (AST)**.
+- Handles **Operator Precedence** (multiplication `*` happens before addition `+`).
+- Validates grammar rules (e.g., missing semicolons `T_SEMICOLON`).
+
+### 3. Semantic Analysis (The Logic Check)
+- **Symbol Table:** tracks variable declarations and memory state.
+- **Scope Validation:**
+    - Prevents using undeclared variables.
+    - Prevents re-declaring existing variables.
+
+### 4. Interpreter (The Runtime)
+- Traverses the AST recursively to execute logic.
+- Performs arithmetic calculations.
+- Handles **Runtime Errors** (like Division by Zero).
+- Executes `print()` statements to standard output.
+
+---
+
+## 🛠️ Architecture
+
+The project follows the standard compiler pipeline:
+
+```mermaid
+graph TD
+    A[Source Code] -->|Lexer| B[Tokens]
+    B -->|Parser| C[Abstract Syntax Tree (AST)]
+    C -->|Semantic Check| D[Validated AST]
+    D -->|Interpreter| E[Output / Result]
+```
+
+---
+
+## 💻 Tech Stack
+*   **Language:** C (Standard C99)
+*   **Tools:** GCC Compiler
+*   **No External Libraries:** Built completely from scratch (std libs only).
+
+---
+
+## 🚀 How to Run
+
+1.  **Clone the repository**
+2.  **Write your C code** in `inputfile.txt`:
+    ```c
+    int x = 10;
+    int y = 5;
+    int result = (x + y) * 2;
+    print(result);
+    ```
+3.  **Compile the Parser:**
+    ```bash
+    gcc parser.c -o parser
+    ```
+4.  **Run logic:**
+    ```bash
+    ./parser
+    ```
+
+---
+
+## 📝 Supported Grammar
+
+```ebnf
+<program>         ::= <statement>*
+<statement>       ::= <declaration> | <assignment> | <print_stmt>
+<declaration>     ::= "int" IDENTIFIER "=" <expression> ";"
+<assignment>      ::= IDENTIFIER "=" <expression> ";"
+<print_stmt>      ::= "print" "(" <expression> ")" ";"
+<expression>      ::= <term> { ("+" | "-") <term> }
+<term>            ::= <factor> { ("*" | "/") <factor> }
+<factor>          ::= NUMBER | IDENTIFIER | "(" <expression> ")"
+```
