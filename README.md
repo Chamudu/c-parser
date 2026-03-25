@@ -1,4 +1,4 @@
-# C Parser & Interpreter 🚀
+# C Parser & Interpreter 
 
 A custom-built Compiler Frontend and Interpreter for a subset of the C language.
 This project implements the full pipeline from raw source code to execution, including Lexical Analysis, Parsing (AST), Semantic Validation, and Runtime Interpretation.
