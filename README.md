@@ -38,10 +38,11 @@ The project follows the standard compiler pipeline:
 
 ```mermaid
 graph TD
-    A[Source Code] -->|Lexer| B[Tokens]
-    B -->|Parser| C[Abstract Syntax Tree (AST)]
-    C -->|Semantic Check| D[Validated AST]
-    D -->|Interpreter| E[Output / Result]
+A[Source Code] -->|Lexer| B[Tokens]
+B -->|Parser| C[Abstract Syntax Tree • AST]
+C -->|"Semantic Check"| D[Validated AST]
+D -->|"Interpreter / Compiler"| E[Output / Result]
+
 ```
 
 ---
